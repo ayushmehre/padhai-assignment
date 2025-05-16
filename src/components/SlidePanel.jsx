@@ -7,7 +7,7 @@ import { useTutorCtx } from "@/context/TutorContext";
 
 export default function SlidePanel() {
   const slideRef = useRef(null);
-  const { startSession } = useTutorCtx();
+  
   useTutorEvents("geometry-001", async (msg) => {
     switch (msg.mode) {
       case "POINT":
@@ -24,11 +24,15 @@ export default function SlidePanel() {
     }
   });
 
+  const onInteractablesDetected = React.useCallback((interactables) => {
+    console.log("interactables", interactables);
+  }, []);
+
   return (
     <div className="border rounded-lg bg-white dark:bg-gray-800 p-4 max-w-3xl mx-auto">
-      <InteractableSlide ref={slideRef}>
-        <QuestionSlide />
-      </InteractableSlide>
+      <InteractableSlide ref={slideRef} onInteractablesDetected={onInteractablesDetected}>
+        <QuestionSlide /> {/* Easily Swappable */}
+      </InteractableSlide >
     </div>
   );
 } 

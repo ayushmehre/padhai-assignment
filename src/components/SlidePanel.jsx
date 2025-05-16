@@ -30,7 +30,7 @@ export default function SlidePanel() {
 
   return (
     <div className="border rounded-lg bg-white dark:bg-gray-800 p-4 max-w-3xl mx-auto">
-      <InteractableSlide ref={slideRef} onInteractablesDetected={onInteractablesDetected}>
+      <InteractableSlide ref={slideRef}>
         <QuestionSlide /> {/* Easily Swappable */}
       </InteractableSlide >
     </div>

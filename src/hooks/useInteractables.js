@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 
-export function useInteractables(containerRef, onInteractablesDetected) {
+export function useInteractables(
+	containerRef,
+	onInteractablesDetected,
+	emitter = null
+) {
 	const [interactables, setInteractables] = useState([]);
 
 	useEffect(() => {
@@ -25,10 +29,25 @@ export function useInteractables(containerRef, onInteractablesDetected) {
 		});
 
 		setInteractables(foundElements);
+
 		if (onInteractablesDetected) {
 			onInteractablesDetected(foundElements);
 		}
-	}, [containerRef, onInteractablesDetected]);
+
+		if (emitter?.emit) {
+			emitter.emit("interactables-detected", foundElements);
+		}
+
+		window.postMessage(
+			{
+				type: "INTERACTABLES_DETECTED",
+				payload: foundElements,
+			},
+			"*"
+		);
+
+		console.log("interactables", foundElements);
+	}, [containerRef, onInteractablesDetected, emitter]);
 
 	return interactables;
 }

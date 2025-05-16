@@ -1,6 +1,7 @@
 import React, {
 	useRef,
 	forwardRef,
+	useEffect,
 	useState,
 	useImperativeHandle,
 } from "react";
@@ -13,13 +14,13 @@ import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import useHighlighterControl from "@/hooks/useHighlighter";
 import { useAudioPlayerControl } from "@/hooks/useAudioPlayer";
 import { useTutorCtx } from "@/context/TutorContext";
+import useEmitter from "@/hooks/useEmitter";
 const InteractableSlide = forwardRef(
-	({ children, onInteractablesDetected }, ref) => {
+	({ children }, ref) => {
 		const containerRef = useRef(null);
 		const cursorRef = useRef(null);
 		const { startSession } = useTutorCtx();
-
-		useInteractables(containerRef, onInteractablesDetected);
+		useInteractables(containerRef);
 
 		const pointer = usePointerControl(cursorRef, containerRef);
 		const highlighter = useHighlighterControl();

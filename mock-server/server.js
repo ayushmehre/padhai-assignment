@@ -22,7 +22,7 @@ async function startServer() {
 
 			switch (data.mode) {
 				case "START_SESSION":
-					handleStartSession(ws);
+					handleStartSession(ws, data.latencyMs);
 					break;
 				case "SPEECH":
 					handleSpeech(ws, data.payload);
@@ -35,10 +35,10 @@ async function startServer() {
 }
 
 // Helpers
-function handleStartSession(ws) {
+function handleStartSession(ws, clientLatencyMs = 0) {
 	sendDelayed(
 		ws,
-		1500,
+		1500 + clientLatencyMs,
 		{
 			mode: "POINT",
 			slideId: "geometry-001",
@@ -49,7 +49,7 @@ function handleStartSession(ws) {
 
 	sendDelayed(
 		ws,
-		3000,
+		3000 + clientLatencyMs,
 		{
 			mode: "HIGHLIGHT",
 			slideId: "geometry-001",
@@ -60,7 +60,7 @@ function handleStartSession(ws) {
 
 	sendDelayed(
 		ws,
-		4500,
+		4500 + clientLatencyMs,
 		{
 			mode: "AUDIO",
 			slideId: "geometry-001",

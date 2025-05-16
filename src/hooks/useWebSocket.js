@@ -22,13 +22,17 @@ export default function useWebSocket(url) {
 			};
 			ws.onerror = (err) => {
 				console.error("❌ Tutor WS error:", err);
-				ws.close();
+				if (wsRef.current?.readyState === 1) {
+					wsRef.current.close();
+				}
 			};
 		};
 		connect();
 		return () => {
 			alive = false;
-			wsRef.current?.close();
+			if (wsRef.current?.readyState === 1) {
+				wsRef.current.close();
+			}
 		};
 	}, [url]);
 

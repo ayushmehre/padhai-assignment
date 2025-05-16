@@ -1,7 +1,10 @@
 import React from "react";
 import { Label, Slider, Switch } from "@/components/ui";
+import { useTutorCtx } from "@/context/TutorContext";
 
-export default function SettingsPanel({ dark, setDark, latency, setLatency }) {
+export default function SettingsPanel({dark, setDark}) { 
+  const { latency, setLatency } = useTutorCtx();
+
   return (
     <div className="flex items-center space-x-4 mb-4">
       <Switch checked={dark} onCheckedChange={() => setDark(!dark)} />

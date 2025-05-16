@@ -1,6 +1,9 @@
 import React, {
     useEffect,
     useMemo,
+    useRef,
+    useCallback,
+    useState,
   } from "react";
   import { TutorContext } from "@/context/TutorContext";
   import { useWebSocket, useEmitter, useRingBuffer } from '@/hooks';
@@ -10,7 +13,21 @@ import React, {
     const emitter = useEmitter();
     const buffer = useRingBuffer(RING_BUFFER_SIZE);
     const wsRef = useWebSocket(SOCKET_URL);
-  
+    const audioCtx = useRef(null);
+    const [latency, setLatency] = useState(0);
+
+    const startSession = useCallback(() => {
+      if (!audioCtx.current || audioCtx.current.state === "closed") {
+        audioCtx.current = new AudioContext();
+      }
+    
+      if (audioCtx.current.state === "suspended") {
+        audioCtx.current.resume();
+      }
+    
+      wsRef.current?.send(JSON.stringify({ mode: "START_SESSION", latencyMs: latency }));
+    }, [latency, wsRef]);
+    
     useEffect(() => {
       const ws = wsRef.current;
       if (!ws) return;
@@ -40,8 +57,11 @@ import React, {
         replay: () => buffer.read(),
         send: (data) => wsRef.current?.readyState === 1 && wsRef.current.send(JSON.stringify(data)),
         socketRef: wsRef,
+        startSession,
+        latency,
+        setLatency,
       }),
-      [emitter, buffer, wsRef] 
+      [emitter, buffer, wsRef, startSession, latency, setLatency]
     );
   
     return (

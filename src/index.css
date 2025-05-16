@@ -127,7 +127,20 @@
   border-radius: 0.25rem;
 }
 
+.regex-highlighted {
+  background-color: gold;
+  font-weight: bold;
+  padding: 0.1rem 0.2rem;
+  border-radius: 0.25rem;
+}
+
 .dark .highlighted {
+  background-color: gold;
+  /* or yellow-300 */
+  color: black;
+}
+
+.dark .regex-highlighted {
   background-color: gold;
   /* or yellow-300 */
   color: black;

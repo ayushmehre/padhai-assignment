@@ -3,12 +3,12 @@ import React, { useRef } from "react";
 import InteractableSlide from "@/components/InteractableSlide";
 import QuestionSlide from "@/slides/QuestionSlide";
 import { useTutorEvents } from "@/hooks/useTutorEvents";
+import { useTutorCtx } from "@/context/TutorContext";
 
-
-export default function SlidePanel({ slideId, startSession }) {
+export default function SlidePanel() {
   const slideRef = useRef(null);
-
-  useTutorEvents(slideId, async (msg) => {
+  const { startSession } = useTutorCtx();
+  useTutorEvents("geometry-001", async (msg) => {
     switch (msg.mode) {
       case "POINT":
         slideRef.current?.pointTo(msg.payload.elementId);
@@ -26,7 +26,7 @@ export default function SlidePanel({ slideId, startSession }) {
 
   return (
     <div className="border rounded-lg bg-white dark:bg-gray-800 p-4 max-w-3xl mx-auto">
-      <InteractableSlide slideId={slideId} startSession={startSession} ref={slideRef}>
+      <InteractableSlide ref={slideRef}>
         <QuestionSlide />
       </InteractableSlide>
     </div>

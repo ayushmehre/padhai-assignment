@@ -11,7 +11,6 @@ The system is designed as a Proof-of-Concept for an AI-Tutor Geometry Board. The
 3.  Additional implemented features:
     - **`AUDIO`**: Plays tutor audio.
     - **`HIGHLIGHT`**: Highlights text or elements.
-    - **`SPEECH`**: Captures learner voice input.
 
 ## Architectural Decisions
 

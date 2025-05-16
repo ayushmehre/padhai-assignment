@@ -59,7 +59,6 @@ The application includes the following UI elements as per the requirements:
 - **Problem Panel** (`id="problemText"`): Displays the static markdown problem statement.
 - **Diagram Canvas** (`id="diagramCanvas"`): Area for the geometry diagram (supports SVG and HTML/CSS).
 - **Workspace / Notes** (`id="workspace"`): A textarea for learner notes.
-- **Mic Button** (Record/Stop Recording): Toggles recording of learner speech.
 
 ## Getting Started
 

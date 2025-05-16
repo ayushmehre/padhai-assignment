@@ -50,18 +50,22 @@ import React, {
       };
     }, [wsRef, buffer, emitter]);
   
+    const stableOn = useCallback((fn) => emitter.on("tutor", fn), [emitter]);
+    const stableOff = useCallback((fn) => emitter.off("tutor", fn), [emitter]);
+    const stableReplay = useCallback(() => buffer.read(), [buffer]);
+
     const value = useMemo(
       () => ({
-        on:  (fn) => emitter.on ("tutor", fn),
-        off: (fn) => emitter.off("tutor", fn),
-        replay: () => buffer.read(),
+        on: stableOn,
+        off: stableOff,
+        replay: stableReplay,
         send: (data) => wsRef.current?.readyState === 1 && wsRef.current.send(JSON.stringify(data)),
         socketRef: wsRef,
         startSession,
         latency,
         setLatency,
       }),
-      [emitter, buffer, wsRef, startSession, latency, setLatency]
+      [stableOn, stableOff, stableReplay, wsRef, startSession, latency, setLatency]
     );
   
     return (

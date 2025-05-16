@@ -122,6 +122,10 @@ While a separate `DESIGN.md` was suggested, key architectural decisions are refl
   - Direct DOM manipulation is employed for specific, imperative actions like moving the `POINT` cursor (`usePointerControl.js` directly styles the cursor element) and potentially for `HIGHLIGHT` if it needs to interact with raw HTML content within `ReactMarkdown`. This approach is chosen for performance and precision in these specific interactive features.
 - **Plugging in New Slides**: Achieved by creating a new React component representing the slide content (HTML structure, text, diagrams) and rendering it as a child of the `<InteractableSlide>` component, typically managed by a parent component like `SlidePanel.jsx`. This allows for easy swapping of slide content by changing the child component.
 
+## Design Overview
+
+For a detailed explanation of the architectural and design decisions, please see the [DESIGN.md](DESIGN.md) file.
+
 ## Optional Features Implemented
 
 - **Latency Slider**: A slider in the `SettingsPanel.jsx` allows simulating network latency for messages sent to the mock server.

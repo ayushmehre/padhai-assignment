@@ -13,7 +13,6 @@ The `<InteractableSlide>` component is responsible for:
     - **`POINT`**: Mandatory feature to move a visual cursor to an element.
     - **`AUDIO`**: Optional feature to play tutor audio.
     - **`HIGHLIGHT`**: Optional feature to highlight text.
-    - **`SPEECH`**: Optional feature for learner voice input.
 5.  **Versatile Diagram Support**: Working seamlessly whether diagrams are authored in SVG or plain HTML/CSS, and manipulating either the real DOM or React's virtual DOM as appropriate.
 
 ## Project Architecture
@@ -41,7 +40,6 @@ The `<InteractableSlide>` component is responsible for:
 - A mock backend is provided in `mock-server/server.js`.
 - It uses `ws` (a WebSocket library for Node.js).
 - Upon a `START_SESSION` message from the client, it emits a scripted sequence of `AUDIO`, `POINT`, and `HIGHLIGHT` events.
-- It accepts `SPEECH` messages from the frontend but currently ignores their content, advancing the script regardless.
 
 ## Implemented Features
 
@@ -49,7 +47,6 @@ The `<InteractableSlide>` component is responsible for:
 - **`POINT` (Mandatory)**: A visual cursor moves to the center of the specified element's bounding box. Implemented in `usePointerControl.js`.
 - **`AUDIO`**: Streams tutor audio. Basic playback is handled by `useAudioPlayer.js`.
 - **`HIGHLIGHT`**: Visually emphasizes text within the problem panel. Implemented in `useHighlighter.js`.
-- **`SPEECH`**: Captures learner audio via the microphone and sends it as a `SPEECH` message to the backend. Implemented in `useVoiceRecorder.js`.
 
 ### UI Elements
 
@@ -104,7 +101,7 @@ You need to run two separate processes: the mock backend server and the frontend
 - `src/components/InteractableSlide.jsx`: The core reusable component.
 - `src/components/SlidePanel.jsx`: Manages the display of slides.
 - `src/slides/QuestionSlide.jsx`: An example of a question slide.
-- `src/hooks/`: Contains custom React hooks for features like interactable detection (`useInteractables.js`), pointer control (`usePointerControl.js`), audio playback (`useAudioPlayer.js`), highlighting (`useHighlighter.js`), and voice recording (`useVoiceRecorder.js`).
+- `src/hooks/`: Contains custom React hooks for features like interactable detection (`useInteractables.js`), pointer control (`usePointerControl.js`), audio playback (`useAudioPlayer.js`), and highlighting (`useHighlighter.js`).
 - `src/providers/TutorProvider.jsx`: Handles WebSocket communication and event bus logic.
 - `mock-server/server.js`: The mock backend implementation.
 - `public/`: Static assets.
@@ -133,7 +130,7 @@ For a detailed explanation of the architectural and design decisions, please see
 ## Evaluation Criteria Considerations
 
 - **Architecture & Abstractions**: Clear separation of concerns with hooks for specific functionalities (pointer, audio, highlight, interactables), a provider for WebSocket and event bus, and distinct presentational components.
-- **Audio Streaming & Capture**: Basic audio playback and microphone capture are implemented.
+- **Audio Streaming & Capture**: Basic audio playback is implemented.
 - **Network Robustness**: WebSocket provider includes reconnection logic and a message buffer.
 - **Backend Mock Quality**: The mock server provides a scripted dialog with `POINT`, `HIGHLIGHT`, and `AUDIO` events.
 - **Point & Highlight Accuracy**: `POINT` uses `getBoundingClientRect` for positioning. `HIGHLIGHT` in `QuestionSlide.jsx` uses `<span>` tags with IDs for direct targeting, and the mock server provides regex-based highlighting for the problem text.

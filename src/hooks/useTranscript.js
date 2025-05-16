@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useTutorEvents } from "@/providers/TutorProvider";
+import { useTutorEvents } from "@/hooks/useTutorEvents";
 
 export default function useTranscript(slideId) {
 	const [text, set] = useState("");

@@ -8,12 +8,13 @@ import { Button } from "@/components/ui/button";
 import "./../styles/cursor.css";
 import { useInteractables } from "@/hooks/useInteractables";
 import { usePointerControl } from "@/hooks/usePointerControl";
+import InteractionToolbar from "./InteractionToolbar";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import useHighlighterControl from "@/hooks/useHighlighter";
 import { useAudioPlayerControl } from "@/hooks/useAudioPlayer";
 
 const InteractableSlide = forwardRef(
-	({ children, onInteractablesDetected, socketRef, startSession }, ref) => {
+	({ children, onInteractablesDetected, startSession }, ref) => {
 		const containerRef = useRef(null);
 		const cursorRef = useRef(null);
 
@@ -21,17 +22,13 @@ const InteractableSlide = forwardRef(
 
 		const pointer = usePointerControl(cursorRef, containerRef);
 		const highlighter = useHighlighterControl();
-		const audio = useAudioPlayerControl();
+        const audio = useAudioPlayerControl();
 
 		useImperativeHandle(ref, () => ({
 		...pointer,
 		...highlighter,
 		...audio,
 		}));
-
-		const { isRecording, toggleRecording } = useVoiceRecorder(socketRef);
-  		const [sessionStarted, setStarted] = useState(false);
-		
 
 		return (
 			<div ref={containerRef} className="relative flex flex-col">
@@ -47,12 +44,7 @@ const InteractableSlide = forwardRef(
 							Start Session
 						</Button>
 					)}
-					<Button
-						onClick={toggleRecording}
-						variant={isRecording ? "destructive" : "default"}
-					>
-						{isRecording ? "🔴 Stop Recording" : "🎤 Record Answer"}
-					</Button>
+					<InteractionToolbar/>
 				</div>
 			</div>
 		);

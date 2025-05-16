@@ -2,7 +2,8 @@
 import React, { useRef } from "react";
 import InteractableSlide from "@/components/InteractableSlide";
 import QuestionSlide from "@/slides/QuestionSlide";
-import { useTutorEvents } from "@/providers/TutorProvider";
+import { useTutorEvents } from "@/hooks/useTutorEvents";
+
 
 export default function SlidePanel({ slideId, startSession }) {
   const slideRef = useRef(null);

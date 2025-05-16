@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTutorCtx } from "@/providers/TutorProvider";
+import { useTutorCtx } from "@/context/TutorContext";
 import useTranscript from "@/hooks/useTranscript";
 import SlidePanel from "@/components/SlidePanel";
 import SettingsPanel from "@/components/SettingsPanel";
 import TranscriptBox from "@/components/TranscriptBox";
-import { useTutorEvents } from "@/providers/TutorProvider";
+import { useTutorEvents } from "@/hooks/useTutorEvents";
 const THEME_KEY = "vite-ui-theme";
 const SLIDE_ID = "geometry-001";
 

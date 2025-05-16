@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import { useTutorCtx } from "@/context/TutorContext";
 
-export function useVoiceRecorder(socketRef) {
+export function useVoiceRecorder() {
 	const [isRecording, setIsRecording] = useState(false);
 	const mediaRecorderRef = useRef(null);
 	const audioChunksRef = useRef([]);
+	const { socketRef } = useTutorCtx();
 
 	const toggleRecording = async () => {
 		if (isRecording) {

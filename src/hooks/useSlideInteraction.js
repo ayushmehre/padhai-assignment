@@ -1,5 +1,6 @@
 import { useTutorEvents } from "@/hooks/useTutorEvents";
 import { useCallback } from "react";
+import { EVENT_POINT, EVENT_HIGHLIGHT, EVENT_AUDIO } from "@/events";
 
 export function useSlideInteraction(slideRef) {
 	const handleTutorEvent = useCallback(
@@ -14,10 +15,10 @@ export function useSlideInteraction(slideRef) {
 			}
 
 			switch (msg.mode) {
-				case "POINT":
+				case EVENT_POINT:
 					slideRef.current.pointTo(msg.payload.elementId);
 					break;
-				case "HIGHLIGHT":
+				case EVENT_HIGHLIGHT:
 					if (problemTextElement) {
 						slideRef.current.clearRegexHighlights(problemTextElement);
 
@@ -55,7 +56,7 @@ export function useSlideInteraction(slideRef) {
 						);
 					}
 					break;
-				case "AUDIO":
+				case EVENT_AUDIO:
 					slideRef.current.playAudio(msg.payload.chunk);
 					break;
 				default:

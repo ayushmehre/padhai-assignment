@@ -17,14 +17,35 @@ The `<InteractableSlide>` component is responsible for:
 
 ## Project Architecture
 
+### Provider-Based Modular Architecture (New)
+
+The application is structured around **domain-specific React providers**, each responsible for a single concern:
+
+- **WebSocketProvider**: Manages the WebSocket connection, message buffering (ring buffer), and exposes connection status and send methods via `useWebSocketCtx`.
+- **EmitProvider**: Manages the event bus (using `mitt`), exposing `on`, `off`, and `emit` via `useEmitCtx`.
+- **AudioProvider**: Manages the `AudioContext` and audio initialization, exposing `audioCtx` and `initAudio` via `useAudioCtx`.
+- **SessionProvider**: Manages session state (e.g., latency, `startSession`), exposing these via `useSessionCtx`.
+- **AppProviders**: Composes all the above providers for easy use in your app entry point.
+
+**Key Benefits:**
+
+- Single Responsibility: Each provider manages only one domain.
+- Testability: Providers can be tested in isolation.
+- Scalability: Easy to add/replace providers as features grow.
+- Performance: Providers only re-render consumers when their specific state changes.
+- Edge Case Handling: Each provider handles its own edge cases (e.g., WebSocket reconnection, audio errors, buffer overflow).
+- Separation of Concerns: UI components only consume the context(s) they need.
+
 ### Frontend
 
 - **Component Structure**: The primary component is `<InteractableSlide>`, which encapsulates the logic for displaying slides, detecting interactables, and handling tutor commands.
   - `SlidePanel.jsx`: Hosts the `InteractableSlide` and manages the current slide content (e.g., `QuestionSlide.jsx`).
   - `QuestionSlide.jsx`: An example slide demonstrating how problem text and diagrams are structured.
 - **State Management & Event Bus**:
-  - A `TutorProvider.jsx` establishes a WebSocket connection and uses the `mitt` library to create an event emitter. This serves as an internal event bus.
-  - Hooks like `useTutorEvents` and `useTutorCtx` are provided for components to subscribe to tutor events and send messages.
+  - The app uses domain-specific providers: WebSocketProvider (WebSocket connection and buffering), EmitProvider (event bus), AudioProvider (audio context), and SessionProvider (session state).
+  - All providers are composed via AppProviders.jsx at the app root.
+  - Each provider exposes a custom hook for consuming its state and actions (e.g., useWebSocketCtx, useEmitCtx, useAudioCtx, useSessionCtx).
+  - The `useTutorEvents` hook now uses the new event and buffer providers to allow components to subscribe to tutor events and replay messages.
   - A ring buffer (`createRingBuffer`) is used to store and replay recent messages, which can be useful for components mounting after events have been emitted.
 - **Interactable Detection**:
   - The `useInteractables.js` hook is responsible for querying the DOM for elements with `data-role="interactable"`. It extracts metadata such as `id`, `type` (from `data-type` or tag name), and `boundingBox`.
@@ -32,7 +53,7 @@ The `<InteractableSlide>` component is responsible for:
   - For features like `POINT`, direct DOM manipulation is used (e.g., `usePointerControl.js` updates cursor position).
   - React handles the rendering of components and overall UI structure.
 - **WebSocket Handling**:
-  - Managed within `TutorProvider.jsx`. It handles connection, message parsing, event emission, and reconnection logic.
+  - Managed within `WebSocketProvider.jsx`. It handles connection, message parsing, event emission, and reconnection logic.
 - **Slide Content**: New question slides can be introduced by creating new React components (like `QuestionSlide.jsx`) and passing them as children to `<InteractableSlide>`.
 
 ### Backend (Mock Server)
@@ -102,17 +123,17 @@ You need to run two separate processes: the mock backend server and the frontend
 - `src/components/SlidePanel.jsx`: Manages the display of slides.
 - `src/slides/QuestionSlide.jsx`: An example of a question slide.
 - `src/hooks/`: Contains custom React hooks for features like interactable detection (`useInteractables.js`), pointer control (`usePointerControl.js`), audio playback (`useAudioPlayer.js`), and highlighting (`useHighlighter.js`).
-- `src/providers/TutorProvider.jsx`: Handles WebSocket communication and event bus logic.
+- `src/providers/`: Contains the new domain-specific providers: WebSocketProvider, EmitProvider, AudioProvider, SessionProvider, and AppProviders.
 - `mock-server/server.js`: The mock backend implementation.
 - `public/`: Static assets.
 - `src/assets/`: Frontend assets like images or CSS specific to components.
 
 ## Design Decisions (DESIGN.md Summary)
 
-While a separate `DESIGN.md` was suggested, key architectural decisions are reflected in the codebase:
+Key architectural decisions are reflected in the codebase:
 
-- **WebSocket Handling & Buffering**: Centralized in `TutorProvider.jsx`, using `mitt` for event emission and a custom ring buffer for replaying messages to late-joining subscribers. Reconnection logic with exponential backoff is implemented.
-- **State Management / Event Bus**: `TutorProvider.jsx` and its associated context/hooks (`useTutorEvents`, `useTutorCtx`) form the primary event bus, preferring this over prop-drilling for tutor events. Local component state is managed by React's `useState` and `useRef`.
+- **WebSocket Handling & Buffering**: Centralized in `WebSocketProvider.jsx`, using `mitt` for event emission (via EmitProvider) and a custom ring buffer for replaying messages to late-joining subscribers. Reconnection logic with exponential backoff is implemented.
+- **State Management / Event Bus**: The app uses domain-specific providers and their associated hooks (`useWebSocketCtx`, `useEmitCtx`, `useAudioCtx`, `useSessionCtx`). The `useTutorEvents` hook is now implemented using these providers. Local component state is managed by React's `useState` and `useRef`.
 - **DOM vs React Updates**:
   - React manages the overall component tree and declarative UI updates.
   - Direct DOM manipulation is employed for specific, imperative actions like moving the `POINT` cursor (`usePointerControl.js` directly styles the cursor element) and potentially for `HIGHLIGHT` if it needs to interact with raw HTML content within `ReactMarkdown`. This approach is chosen for performance and precision in these specific interactive features.
@@ -129,9 +150,25 @@ For a detailed explanation of the architectural and design decisions, please see
 
 ## Evaluation Criteria Considerations
 
-- **Architecture & Abstractions**: Clear separation of concerns with hooks for specific functionalities (pointer, audio, highlight, interactables), a provider for WebSocket and event bus, and distinct presentational components.
+- **Architecture & Abstractions**: Clear separation of concerns with hooks for specific functionalities (pointer, audio, highlight, interactables), a provider-based architecture for WebSocket, event bus, audio, and session state, and distinct presentational components.
 - **Audio Streaming & Capture**: Basic audio playback is implemented.
 - **Network Robustness**: WebSocket provider includes reconnection logic and a message buffer.
 - **Backend Mock Quality**: The mock server provides a scripted dialog with `POINT`, `HIGHLIGHT`, and `AUDIO` events.
 - **Point & Highlight Accuracy**: `POINT` uses `getBoundingClientRect` for positioning. `HIGHLIGHT` in `QuestionSlide.jsx` uses `<span>` tags with IDs for direct targeting, and the mock server provides regex-based highlighting for the problem text.
 - **UI / UX Polish**: The application uses Tailwind CSS for styling and provides smooth transitions for the pointer. Dark/light mode and a latency simulator are included as UI polish.
+
+## Session Start/Restart Safety Guard (2024 Update)
+
+- The Start/Restart Session button now includes a built-in safety guard to prevent spamming:
+  - After each click, the button is disabled for 1.5 seconds, ignoring further clicks during this period.
+  - This ensures that multiple rapid session events are not sent to the backend, preventing race conditions or UI glitches.
+- On each Start/Restart, the following are reset via imperative methods:
+  - The pointer is hidden and reset to its default position.
+  - All highlights are cleared from the slide.
+  - Any currently playing audio is stopped.
+- This logic is implemented in the `InteractableSlide` component, which manages the button state and calls the appropriate imperative methods on its child hooks.
+
+## Pause/Stop Session Functionality
+
+- As of this version, explicit Pause and Stop session features are **not implemented**.
+- Rationale: These features would require both frontend state management and protocol/logic changes in the mock server. For the current POC, only Start/Restart (with safety guard) is supported for simplicity and robustness.

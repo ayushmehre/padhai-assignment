@@ -1,4 +1,12 @@
 import { AUDIO_CLIP_BASE64 } from "../src/assets/audioBase64.js";
+import {
+	EVENT_START_SESSION,
+	EVENT_POINT,
+	EVENT_HIGHLIGHT,
+	EVENT_AUDIO,
+	EVENT_SPEECH,
+	EVENT_TRANSCRIPT,
+} from "../src/events.js";
 
 async function startServer() {
 	const { WebSocketServer } = await import("ws");
@@ -21,10 +29,10 @@ async function startServer() {
 			console.log("Received:", data);
 
 			switch (data.mode) {
-				case "START_SESSION":
+				case EVENT_START_SESSION:
 					handleStartSession(ws, data.latencyMs);
 					break;
-				case "SPEECH":
+				case EVENT_SPEECH:
 					handleSpeech(ws, data.payload);
 					break;
 				default:
@@ -40,7 +48,7 @@ function handleStartSession(ws, clientLatencyMs = 0) {
 		ws,
 		1500 + clientLatencyMs,
 		{
-			mode: "POINT",
+			mode: EVENT_POINT,
 			slideId: "geometry-001",
 			payload: { elementId: "arcAB" },
 		},
@@ -51,7 +59,7 @@ function handleStartSession(ws, clientLatencyMs = 0) {
 		ws,
 		3000 + clientLatencyMs,
 		{
-			mode: "HIGHLIGHT",
+			mode: EVENT_HIGHLIGHT,
 			slideId: "geometry-001",
 			payload: { regex: "60°", matchIndex: 0 },
 		},
@@ -62,7 +70,7 @@ function handleStartSession(ws, clientLatencyMs = 0) {
 		ws,
 		4500 + clientLatencyMs,
 		{
-			mode: "AUDIO",
+			mode: EVENT_AUDIO,
 			slideId: "geometry-001",
 			payload: {
 				chunk: AUDIO_CLIP_BASE64,
@@ -78,7 +86,7 @@ function handleSpeech(ws, payload) {
 
 	// Optional: echo back transcript
 	const transcriptMsg = {
-		mode: "TRANSCRIPT",
+		mode: EVENT_TRANSCRIPT,
 		payload: {
 			text: `Yes, that's correct. The learner said: "${payload.text}"`,
 		},

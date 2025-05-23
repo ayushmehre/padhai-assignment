@@ -1,12 +1,11 @@
-import React, { useState } from "react";
-import { TutorProvider } from "@/providers/TutorProvider";
+import React from "react";
+import { AppProviders } from "@/providers/AppProviders";
 import AppInner from "@/AppInner";
 
 export default function App() {
-
   return (
-    <TutorProvider>
+    <AppProviders>
       <AppInner />
-    </TutorProvider>
+    </AppProviders>
   );
 }

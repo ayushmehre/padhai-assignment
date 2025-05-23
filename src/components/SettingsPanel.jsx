@@ -1,9 +1,9 @@
 import React from "react";
 import { Label, Slider, Switch } from "@/components/ui";
-import { useTutorCtx } from "@/context/TutorContext";
+import { useSessionCtx } from "@/providers/SessionProvider";
 
 export default function SettingsPanel({dark, setDark}) { 
-  const { latency, setLatency } = useTutorCtx();
+  const { latency, setLatency } = useSessionCtx();
 
   return (
     <div className="flex items-center space-x-4 mb-4">

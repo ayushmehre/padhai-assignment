@@ -190,10 +190,22 @@ export default function useHighlighterControl() {
 		});
 	};
 
+	const clearAll = () => {
+		// Remove all highlights from the document
+		const highlighted = document.querySelectorAll(
+			".highlighted, .regex-highlighted"
+		);
+		highlighted.forEach((el) => {
+			el.classList.remove("highlighted");
+			el.classList.remove("regex-highlighted");
+		});
+	};
+
 	return {
 		highlightById,
 		clearById,
 		highlightByRegex,
 		clearRegexHighlights,
+		clearAll,
 	};
 }

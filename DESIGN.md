@@ -14,21 +14,40 @@ The system is designed as a Proof-of-Concept for an AI-Tutor Geometry Board. The
 
 ## Architectural Decisions
 
+### Provider-Based Modular Architecture (New)
+
+The application is structured around **domain-specific React providers**, each responsible for a single concern:
+
+- **WebSocketProvider**: Manages the WebSocket connection, message buffering (ring buffer), and exposes connection status and send methods via `useWebSocketCtx`.
+- **EmitProvider**: Manages the event bus (using `mitt`), exposing `on`, `off`, and `emit` via `useEmitCtx`.
+- **AudioProvider**: Manages the `AudioContext` and audio initialization, exposing `audioCtx` and `initAudio` via `useAudioCtx`.
+- **SessionProvider**: Manages session state (e.g., latency, `startSession`), exposing these via `useSessionCtx`.
+- **AppProviders**: Composes all the above providers for easy use in your app entry point.
+
+**Key Benefits:**
+
+- Single Responsibility: Each provider manages only one domain.
+- Testability: Providers can be tested in isolation.
+- Scalability: Easy to add/replace providers as features grow.
+- Performance: Providers only re-render consumers when their specific state changes.
+- Edge Case Handling: Each provider handles its own edge cases (e.g., WebSocket reconnection, audio errors, buffer overflow).
+- Separation of Concerns: UI components only consume the context(s) they need.
+
 ### 1. WebSocket Handling & Buffering
 
-- **Centralized Handling**: WebSocket connection, message parsing, event emission, and reconnection logic are managed centrally within `src/providers/TutorProvider.jsx`.
+- **Centralized Handling**: WebSocket connection, message parsing, event emission, and reconnection logic are managed centrally within `src/providers/WebSocketProvider.jsx`.
 - **Custom Hook**: The `src/hooks/useWebSocket.js` hook encapsulates the raw WebSocket setup and lifecycle management (connect, onopen, onclose, onerror, reconnect attempts with backoff).
-- **Message Buffering**: A ring buffer (`src/hooks/useRingBuffer.js`, instantiated in `TutorProvider.jsx`) stores recent messages received from the WebSocket. This allows components that mount after certain events have already been emitted to "replay" these events and sync their state (e.g., a slide loading after initial tutor messages). The buffer size is configurable via `src/config/socket.js`.
+- **Message Buffering**: A ring buffer (`src/hooks/useRingBuffer.js`, instantiated in `WebSocketProvider.jsx`) stores recent messages received from the WebSocket. This allows components that mount after certain events have already been emitted to "replay" these events and sync their state (e.g., a slide loading after initial tutor messages). The buffer size is configurable via `src/config/socket.js`.
 
 ### 2. State Management / Event Bus
 
-- **Primary Event Bus**: `TutorProvider.jsx` utilizes the `mitt` library to create an event emitter. This emitter serves as the internal event bus for tutor-initiated events.
-- **Context API**: React's Context API (`src/context/TutorContext.js`) is used to expose the event bus, WebSocket sending capabilities, and other shared states (like latency settings) to the component tree.
+- **Primary Event Bus**: `EmitProvider.jsx` utilizes the `mitt` library to create an event emitter. This emitter serves as the internal event bus for tutor-initiated events.
+- **Context API**: React's Context API is used via domain-specific providers (`WebSocketProvider`, `EmitProvider`, `AudioProvider`, `SessionProvider`) to expose their respective state and actions to the component tree.
 - **Subscriber Hooks**:
-  - `src/hooks/useTutorEvents.js`: Allows components to subscribe to specific tutor events (filtered by `slideId` if necessary) and receive replayed messages from the ring buffer upon mounting.
-  - `src/hooks/useTutorCtx.js`: Provides convenient access to the `TutorContext` values (e.g., `send` function to send messages to WebSocket, `socketRef`, `startSession`).
+  - `src/hooks/useTutorEvents.js`: Allows components to subscribe to specific tutor events (filtered by `slideId` if necessary) and receive replayed messages from the ring buffer upon mounting. This hook now uses `useEmitCtx` and `useWebSocketCtx` internally.
+  - `useWebSocketCtx`, `useEmitCtx`, `useAudioCtx`, `useSessionCtx`: Custom hooks for accessing the respective provider's context.
 - **Local Component State**: Standard React state management (`useState`, `useRef`) is used for component-level UI state and temporary data.
-- **Prop-Drilling Avoidance**: This event bus and context approach is preferred over prop-drilling for distributing tutor commands and WebSocket state across the application.
+- **Prop-Drilling Avoidance**: This provider-based approach is preferred over prop-drilling for distributing tutor commands and WebSocket state across the application.
 
 ### 3. DOM vs. React Updates
 
@@ -56,3 +75,19 @@ The process is as follows:
     - The `<InteractableSlide>` component acts as a wrapper, providing the necessary context and interaction capabilities (pointer, highlight, audio handling via its imperative ref methods, which are called by `useSlideInteraction` hook).
 
 This component-based approach ensures that each slide is a self-contained unit that can be easily managed and swapped within the React application structure. The `<InteractableSlide>` component remains generic, handling the _interaction mechanics_ regardless of the specific _content_ provided by the child slide component.
+
+## Session Start/Restart Safety Guard (2024 Update)
+
+- The Start/Restart Session button now includes a built-in safety guard to prevent spamming:
+  - After each click, the button is disabled for 1.5 seconds, ignoring further clicks during this period.
+  - This ensures that multiple rapid session events are not sent to the backend, preventing race conditions or UI glitches.
+- On each Start/Restart, the following are reset via imperative methods:
+  - The pointer is hidden and reset to its default position.
+  - All highlights are cleared from the slide.
+  - Any currently playing audio is stopped.
+- This logic is implemented in the `InteractableSlide` component, which manages the button state and calls the appropriate imperative methods on its child hooks.
+
+## Pause/Stop Session Functionality
+
+- As of this version, explicit Pause and Stop session features are **not implemented**.
+- Rationale: These features would require both frontend state management and protocol/logic changes in the mock server. For the current POC, only Start/Restart (with safety guard) is supported for simplicity and robustness.

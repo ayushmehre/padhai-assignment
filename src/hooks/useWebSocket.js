@@ -1,36 +1,49 @@
 import { useEffect, useRef } from "react";
 
 const RECONNECT_DELAY_MS = 2_000;
+const MAX_RETRIES = 10;
 
 export default function useWebSocket(url) {
 	const wsRef = useRef(null);
+	const retryCount = useRef(0);
+	const alive = useRef(true);
 
 	useEffect(() => {
-		let alive = true;
-		let retry = 0;
 		const connect = () => {
-			if (!alive) return;
+			if (!alive.current) return;
+
 			const ws = new WebSocket(url);
 			wsRef.current = ws;
-			ws.onopen = () => {
-				console.info("🟢 Tutor WS connected");
-				retry = 0;
-			};
-			ws.onclose = () => {
-				console.warn("🔌 Tutor WS closed, retrying…");
-				setTimeout(connect, RECONNECT_DELAY_MS * ++retry);
-			};
-			ws.onerror = (err) => {
-				console.error("❌ Tutor WS error:", err);
-				if (wsRef.current?.readyState === 1) {
-					wsRef.current.close();
+
+			ws.addEventListener("open", () => {
+				console.info("WebSocket connected");
+				retryCount.current = 0;
+			});
+
+			ws.addEventListener("close", () => {
+				if (!alive.current) return;
+				const delay = RECONNECT_DELAY_MS * ++retryCount.current;
+				if (retryCount.current <= MAX_RETRIES) {
+					console.warn(`WebSocket closed. Reconnecting in ${delay}ms…`);
+					setTimeout(connect, delay);
+				} else {
+					console.error("Max reconnect attempts reached.");
 				}
-			};
+			});
+
+			ws.addEventListener("error", (err) => {
+				console.error("WebSocket error:", err);
+				if (ws.readyState === WebSocket.OPEN) {
+					ws.close();
+				}
+			});
 		};
+
 		connect();
+
 		return () => {
-			alive = false;
-			if (wsRef.current?.readyState === 1) {
+			alive.current = false;
+			if (wsRef.current?.readyState === WebSocket.OPEN) {
 				wsRef.current.close();
 			}
 		};

@@ -1,24 +1,23 @@
-import { useContext, useEffect } from "react";
-import { TutorContext } from "@/context/TutorContext";
+import { useEffect } from "react";
+import { useMittListener } from "@/providers/EmitProvider";
+import { useWebSocketCtx } from "@/providers/WebSocketProvider";
 
 export function useTutorEvents(slideId, handler) {
-	const ctx = useContext(TutorContext);
-	if (!ctx)
-		throw new Error("useTutorEvents must be used inside <TutorProvider>");
+	const { buffer } = useWebSocketCtx();
 
-	const { on, off, replay } = ctx;
+	const wrapped = (msg) => {
+		if (!slideId || msg.slideId === slideId) {
+			console.log("[useTutorEvents] Event received:", msg);
+			handler(msg);
+		}
+	};
+
+	useMittListener("tutor", wrapped);
 
 	useEffect(() => {
-		if (!handler) return;
-
-		const wrapped = (msg) => {
-			if (!slideId || msg.slideId === slideId) {
-				handler(msg);
-			}
-		};
-
-		on(wrapped);
-		replay().forEach(wrapped);
-		return () => off(wrapped);
-	}, [slideId, handler, on, off, replay]);
+		buffer.read().forEach((msg) => {
+			console.log("[useTutorEvents] Replaying buffered event:", msg);
+			wrapped(msg);
+		});
+	}, [slideId, handler, buffer]);
 }

@@ -1,6 +1,7 @@
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, Suspense } from "react";
 import InteractableSlide from "@/components/InteractableSlide";
-import QuestionSlide from "@/slides/QuestionSlide";
+// Code split QuestionSlide
+const QuestionSlide = React.lazy(() => import("@/slides/QuestionSlide"));
 import { useSlideInteraction } from "@/hooks/useSlideInteraction";
 
 export default function SlidePanel() {
@@ -15,7 +16,9 @@ export default function SlidePanel() {
   return (
     <div className="border rounded-lg bg-white dark:bg-gray-800 p-4 max-w-3xl mx-auto shadow-sm">
       <InteractableSlide ref={slideRef}>
-        <QuestionSlide />
+        <Suspense fallback={<div className="p-8 text-center">Loading slide…</div>}>
+          <QuestionSlide />
+        </Suspense>
       </InteractableSlide>
     </div>
   );

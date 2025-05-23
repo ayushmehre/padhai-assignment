@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import "./../styles/cursor.css";
 import { useInteractables } from "@/hooks/useInteractables";
 import { usePointerControl } from "@/hooks/usePointerControl";
-import InteractionToolbar from "./InteractionToolbar";
 import useHighlighterControl from "@/hooks/useHighlighter";
 import { useAudioPlayerControl } from "@/hooks/useAudioPlayer";
 import { useSessionCtx } from "@/providers/SessionProvider";
@@ -80,7 +79,6 @@ const InteractableSlide = forwardRef(
 								{hasStarted ? "Restart Session" : "Start Session"}
 							</Button>
 						)}
-						<InteractionToolbar/>
 					</div>
 				</div>
 			</div>

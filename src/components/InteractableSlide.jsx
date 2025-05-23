@@ -14,6 +14,8 @@ import { useAudioPlayerControl } from "@/hooks/useAudioPlayer";
 import { useSessionCtx } from "@/providers/SessionProvider";
 import { useAudioCtx } from "@/providers/AudioProvider";
 import { useWebSocketCtx } from "@/providers/WebSocketProvider";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
 const InteractableSlide = forwardRef(
 	({ children }, ref) => {
 		const containerRef = useRef(null);
@@ -49,10 +51,35 @@ const InteractableSlide = forwardRef(
 		const handleStartOrRestart = () => {
 			if (isBtnDisabled) return; // Guard: ignore if disabled
 			setIsBtnDisabled(true);
-			// Reset pointer, highlights, audio
-			slideApiRef.current.reset && slideApiRef.current.reset();
-			slideApiRef.current.clearAll && slideApiRef.current.clearAll();
-			slideApiRef.current.stop && slideApiRef.current.stop();
+			// Reset pointer, highlights, audio with try/catch and null checks
+			const api = slideApiRef.current;
+			try {
+				if (typeof api.reset === "function") {
+					api.reset();
+				} else if (api.reset !== undefined) {
+					console.warn("reset is not a function", api.reset);
+				}
+			} catch (err) {
+				console.error("Error in pointer reset:", err);
+			}
+			try {
+				if (typeof api.clearAll === "function") {
+					api.clearAll();
+				} else if (api.clearAll !== undefined) {
+					console.warn("clearAll is not a function", api.clearAll);
+				}
+			} catch (err) {
+				console.error("Error in highlight clearAll:", err);
+			}
+			try {
+				if (typeof api.stop === "function") {
+					api.stop();
+				} else if (api.stop !== undefined) {
+					console.warn("stop is not a function", api.stop);
+				}
+			} catch (err) {
+				console.error("Error in audio stop:", err);
+			}
 			startSession();
 			setHasStarted(true);
 			setTimeout(() => setIsBtnDisabled(false), 1500); // Re-enable after 1.5s
@@ -60,7 +87,9 @@ const InteractableSlide = forwardRef(
 
 		return (
 			<div ref={containerRef} className="relative flex flex-col">
-				<div>{children}</div>
+				<ErrorBoundary>
+					<div>{children}</div>
+				</ErrorBoundary>
 				<div
 					ref={cursorRef}
 					className="pointer-events-none absolute z-50 w-4 h-4 bg-red-500 rounded-full transition-transform duration-300 ease-out"
